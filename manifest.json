@@ -1,0 +1,50 @@
+{
+  "name": "CineAI — AI Video Editing",
+  "short_name": "CineAI",
+  "description": "AI se apni videos cinematic banao — Auto-cut, Color Grade, Captions sab kuch!",
+  "start_url": "./ai-video-editor.html",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#9b5de5",
+  "orientation": "portrait-primary",
+  "lang": "ur",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "ai-video-editor.html",
+      "sizes": "390x844",
+      "type": "text/html",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["productivity", "entertainment"],
+  "shortcuts": [
+    {
+      "name": "Video Edit Karo",
+      "short_name": "Edit",
+      "description": "Naya video edit shuru karo",
+      "url": "./ai-video-editor.html#features",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Rewards Dekho",
+      "short_name": "Rewards",
+      "description": "Apne rewards aur points dekho",
+      "url": "./ai-video-editor.html#rewards",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

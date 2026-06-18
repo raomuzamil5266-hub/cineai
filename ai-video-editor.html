@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ur" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>CineAI — AI Video Editing</title>
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#080808" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="CineAI" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="AI se apni videos cinematic banao — Auto-cut, Color Grade, Captions sab kuch!" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Apple Touch Icon (SVG se generate) -->
+  <link rel="apple-touch-icon" href="icon-192.png" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:    #080808;
+      --deep:     #0f0f0f;
+      --card:     #151515;
+      --border:   #222222;
+      --plasma:   #9b5de5;
+      --cyan:     #00f5d4;
+      --amber:    #f7c948;
+      --white:    #f0efe9;
+      --muted:    #888888;
+      --display:  'Bebas Neue', sans-serif;
+      --body:     'Space Grotesk', sans-serif;
+      --mono:     'Inter', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 5vw;
+      backdrop-filter: blur(14px);
+      background: rgba(8,8,8,0.82);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-family: var(--display);
+      font-size: 1.8rem;
+      letter-spacing: .08em;
+      color: var(--white);
+    }
+    .logo span { color: var(--plasma); }
+    nav ul { list-style: none; display: flex; gap: 2rem; }
+    nav ul a {
+      color: var(--muted); text-decoration: none;
+      font-size: .9rem; font-weight: 500; letter-spacing: .04em;
+      transition: color .2s;
+    }
+    nav ul a:hover { color: var(--cyan); }
+    .nav-cta {
+      background: var(--plasma); color: #fff;
+      border: none; border-radius: 6px;
+      padding: .55rem 1.3rem; font-size: .9rem; font-weight: 600;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .nav-cta:hover { opacity: .85; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 8rem 5vw 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 20%, rgba(155,93,229,.18) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,245,212,.1) 0%, transparent 60%);
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      background: rgba(155,93,229,.15);
+      border: 1px solid rgba(155,93,229,.35);
+      color: var(--plasma);
+      font-size: .78rem; font-weight: 600; letter-spacing: .14em;
+      text-transform: uppercase; padding: .35rem 1rem; border-radius: 100px;
+      margin-bottom: 1.5rem; position: relative; z-index: 1;
+    }
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(3.5rem, 10vw, 9rem);
+      line-height: .95;
+      letter-spacing: .03em;
+      position: relative; z-index: 1;
+    }
+    h1 .accent { color: var(--cyan); }
+    .hero-sub {
+      max-width: 560px; margin: 1.8rem auto 0;
+      color: var(--muted); font-size: 1.05rem; line-height: 1.75;
+      position: relative; z-index: 1;
+    }
+    .hero-actions {
+      display: flex; gap: 1rem; margin-top: 2.5rem;
+      flex-wrap: wrap; justify-content: center;
+      position: relative; z-index: 1;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--plasma), #6a0dad);
+      color: #fff; border: none; border-radius: 8px;
+      padding: .85rem 2rem; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 0 28px rgba(155,93,229,.35);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 44px rgba(155,93,229,.55); }
+    .btn-ghost {
+      background: transparent; color: var(--white);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: .85rem 2rem; font-size: 1rem; font-weight: 500;
+      cursor: pointer; transition: border-color .2s, color .2s;
+    }
+    .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* timeline waveform decoration */
+    .waveform {
+      display: flex; align-items: flex-end; gap: 3px;
+      margin-top: 3.5rem; position: relative; z-index: 1;
+    }
+    .waveform span {
+      display: block; width: 4px; border-radius: 2px;
+      background: var(--plasma); opacity: .6;
+      animation: wave 1.4s ease-in-out infinite;
+    }
+    .waveform span:nth-child(even) { background: var(--cyan); }
+    @keyframes wave {
+      0%, 100% { transform: scaleY(1); }
+      50%       { transform: scaleY(2.5); }
+    }
+
+    /* ── FEATURES ── */
+    .section { padding: 6rem 5vw; }
+    .section-label {
+      font-family: var(--mono); font-size: .75rem; font-weight: 500;
+      letter-spacing: .18em; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: .75rem;
+    }
+    .section-title {
+      font-family: var(--display);
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      line-height: 1;
+      max-width: 640px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5px;
+      margin-top: 3.5rem;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .feat-card {
+      background: var(--card);
+      padding: 2.2rem;
+      transition: background .25s;
+      position: relative;
+    }
+    .feat-card:hover { background: #1c1c1c; }
+    .feat-icon {
+      width: 48px; height: 48px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin-bottom: 1.2rem;
+    }
+    .feat-card h3 {
+      font-size: 1.1rem; font-weight: 600; margin-bottom: .5rem;
+    }
+    .feat-card p { color: var(--muted); font-size: .9rem; line-height: 1.65; }
+    .feat-card .tag {
+      display: inline-block; margin-top: 1rem;
+      background: rgba(0,245,212,.08); border: 1px solid rgba(0,245,212,.2);
+      color: var(--cyan); font-size: .72rem; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase;
+      padding: .25rem .7rem; border-radius: 100px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how { background: var(--deep); }
+    .steps { display: flex; flex-direction: column; gap: 0; margin-top: 3rem; }
+    .step {
+      display: grid; grid-template-columns: 3rem 1fr;
+      gap: 1.5rem; padding: 2rem 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      font-family: var(--display); font-size: 2.5rem;
+      color: var(--border); line-height: 1;
+      transition: color .3s;
+    }
+    .step:hover .step-num { color: var(--plasma); }
+    .step-body h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: .4rem; }
+    .step-body p { color: var(--muted); font-size: .92rem; }
+
+    /* ── PRICING ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+    .plan {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 2.2rem;
+      display: flex; flex-direction: column;
+      transition: border-color .25s;
+    }
+    .plan:hover { border-color: var(--plasma); }
+    .plan.featured {
+      border-color: var(--plasma);
+      background: linear-gradient(160deg, rgba(155,93,229,.12) 0%, var(--card) 60%);
+    }
+    .plan-label {
+      font-size: .75rem; font-weight: 600; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: .8rem;
+    }
+    .plan.featured .plan-label { color: var(--plasma); }
+    .plan-price {
+      font-family: var(--display); font-size: 3.5rem; line-height: 1;
+      margin-bottom: 1.5rem;
+    }
+    .plan-price sup { font-size: 1.5rem; vertical-align: top; margin-top: .6rem; display: inline-block; }
+    .plan-price small { font-family: var(--body); font-size: .9rem; color: var(--muted); }
+    .plan ul { list-style: none; flex: 1; }
+    .plan ul li {
+      padding: .5rem 0; color: var(--muted); font-size: .9rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .plan ul li::before { content: '✓'; color: var(--cyan); font-weight: 700; }
+    .plan ul li:last-child { border-bottom: none; }
+    .plan .btn-primary, .plan .btn-ghost { width: 100%; margin-top: 1.8rem; border-radius: 8px; padding: .85rem; }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials { background: var(--deep); }
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+    .testi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.8rem;
+    }
+    .testi-card p { color: var(--muted); font-size: .95rem; line-height: 1.7; font-style: italic; }
+    .testi-author {
+      display: flex; align-items: center; gap: .9rem;
+      margin-top: 1.4rem;
+    }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--plasma), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .85rem; color: #fff;
+    }
+    .testi-author div small { color: var(--muted); font-size: .8rem; }
+
+    /* ── CTA BANNER ── */
+    .cta-banner {
+      margin: 5rem 5vw;
+      background: linear-gradient(135deg, rgba(155,93,229,.22), rgba(0,245,212,.12));
+      border: 1px solid rgba(155,93,229,.3);
+      border-radius: 16px;
+      padding: 4rem 3rem;
+      text-align: center;
+    }
+    .cta-banner h2 {
+      font-family: var(--display);
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      line-height: 1; margin-bottom: 1rem;
+    }
+    .cta-banner p { color: var(--muted); max-width: 480px; margin: 0 auto 2rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem 5vw;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    footer p { color: var(--muted); font-size: .85rem; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: .85rem; }
+    .footer-links a:hover { color: var(--cyan); }
+
+    /* ── SCROLL ANIMATION ── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── OWNER REWARD ── */
+    .owner-reward {
+      margin-top: 2.5rem;
+      background: linear-gradient(135deg, rgba(247,201,72,.12), rgba(155,93,229,.15));
+      border: 2px solid var(--amber);
+      border-radius: 16px;
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .owner-reward::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(247,201,72,.1), transparent);
+      pointer-events: none;
+    }
+    .owner-crown {
+      font-size: 3rem; margin-bottom: .5rem;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .owner-badge {
+      display: inline-block;
+      background: var(--amber); color: #000;
+      font-size: .72rem; font-weight: 800; letter-spacing: .15em;
+      padding: .3rem .9rem; border-radius: 100px; margin-bottom: 1rem;
+    }
+    .owner-reward h3 { font-size: 1.4rem; font-weight: 700; margin-bottom: .5rem; color: var(--amber); }
+    .owner-reward > p { color: var(--muted); font-size: .95rem; margin-bottom: 1.5rem; }
+    .owner-perks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: .75rem;
+    }
+    .perk-item {
+      display: flex; align-items: center; gap: .7rem;
+      background: rgba(247,201,72,.07); border: 1px solid rgba(247,201,72,.2);
+      border-radius: 8px; padding: .7rem 1rem;
+      font-size: .9rem; font-weight: 500;
+    }
+    .perk-icon { font-size: 1.2rem; }
+
+    /* ── PUBLIC REWARDS ── */
+    .rewards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem; margin-bottom: 3rem;
+    }
+    .reward-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem; text-align: center;
+      transition: border-color .25s, transform .25s;
+    }
+    .reward-card:hover { border-color: var(--plasma); transform: translateY(-3px); }
+    .reward-pts {
+      display: inline-block;
+      background: rgba(155,93,229,.15); border: 1px solid rgba(155,93,229,.3);
+      color: var(--plasma); font-size: .75rem; font-weight: 700;
+      letter-spacing: .08em; padding: .25rem .75rem; border-radius: 100px;
+      margin-bottom: .8rem;
+    }
+    .reward-icon { font-size: 2rem; margin-bottom: .6rem; }
+    .reward-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: .35rem; }
+    .reward-card p { color: var(--muted); font-size: .82rem; }
+
+    /* ── REDEEM TABLE ── */
+    .redeem-table {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .redeem-table h3 { padding: 1.5rem 1.5rem 0; }
+    .redeem-row {
+      display: grid; grid-template-columns: 1fr 2fr 1fr;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      align-items: center; gap: 1rem;
+      font-size: .9rem;
+    }
+    .redeem-row:last-child { border-bottom: none; }
+    .header-row { color: var(--muted); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+    .pts-badge {
+      display: inline-block;
+      background: rgba(155,93,229,.15); border: 1px solid rgba(155,93,229,.3);
+      color: var(--plasma); font-size: .8rem; font-weight: 700;
+      padding: .2rem .7rem; border-radius: 100px;
+    }
+    .pts-badge.gold { background: rgba(247,201,72,.15); border-color: rgba(247,201,72,.35); color: var(--amber); }
+    .val { color: var(--muted); }
+    .val.gold { color: var(--amber); font-weight: 700; }
+    .highlight-row { background: rgba(247,201,72,.05); }
+
+    @media (max-width: 680px) {
+      nav ul { display: none; }
+      .hero-actions { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Cine<span>AI</span></div>
+  <ul>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#rewards">🎁 Rewards</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <button class="nav-cta">Free Shuru Karein</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-eyebrow">✦ Next-Gen AI Video Editing</div>
+  <h1>EDIT VIDEOS<br>WITH <span class="accent">AI</span><br>MAGIC</h1>
+  <p class="hero-sub">
+    Sirf ek click mein aapki raw footage ko cinematic masterpiece mein badal dein.
+    Auto-cut, color grade, captions — sab kuch AI karta hai.
+  </p>
+  <div class="hero-actions">
+    <button class="btn-primary">Abhi Try Karein — Free Hai</button>
+    <button class="btn-ghost">▶ Demo Dekhein</button>
+  </div>
+  <!-- animated waveform -->
+  <div class="waveform" aria-hidden="true">
+    <script>
+      for(let i=0;i<38;i++){
+        const h = 8 + Math.random()*36;
+        document.write(`<span style="height:${h}px;animation-delay:${(i*0.06).toFixed(2)}s"></span>`);
+      }
+    </script>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-label">Core Features</div>
+  <h2 class="section-title reveal">AI Jo Kaam Samajhta Hai</h2>
+
+  <div class="features-grid reveal" style="transition-delay:.1s">
+
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(155,93,229,.15)">🎬</div>
+      <h3>Auto-Cut & Edit</h3>
+      <p>AI automatically best moments detect karke perfect cuts lagata hai. Ghanton ka kaam minutes mein.</p>
+      <span class="tag">Time-Saver</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(0,245,212,.12)">🎨</div>
+      <h3>Cinematic Color Grade</h3>
+      <p>Hollywood-style color grading sirf ek click mein. 50+ professional presets available.</p>
+      <span class="tag">Pro Quality</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(247,201,72,.12)">💬</div>
+      <h3>Auto Captions</h3>
+      <p>Urdu, English, Hindi — kisi bhi language mein accurate subtitles automatically generate hon.</p>
+      <span class="tag">Multilingual</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(155,93,229,.15)">🔊</div>
+      <h3>AI Audio Enhance</h3>
+      <p>Background noise hatao, voice clarity improve karo, aur perfect audio mix auto mein hasil karo.</p>
+      <span class="tag">Crystal Clear</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(0,245,212,.12)">✨</div>
+      <h3>Smart B-Roll</h3>
+      <p>AI aapki script padh k automatically relevant B-roll footage suggest karta hai stock library se.</p>
+      <span class="tag">AI-Powered</span>
+    </div>
+
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(247,201,72,.12)">📱</div>
+      <h3>Multi-Format Export</h3>
+      <p>YouTube, Instagram Reels, TikTok — ek project se sab formats mein export karo automatically.</p>
+      <span class="tag">All Platforms</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section how" id="how">
+  <div class="section-label">Process</div>
+  <h2 class="section-title reveal">3 Steps Mein Professional Video</h2>
+
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <h3>Footage Upload Karein</h3>
+        <p>Apni raw video files drag & drop karein ya cloud se import karein. MP4, MOV, AVI — sab supported hain.</p>
+      </div>
+    </div>
+    <div class="step reveal" style="transition-delay:.1s">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <h3>AI Ko Style Batayein</h3>
+        <p>Vibe chunein — cinematic, vlog, corporate, reels. AI aapki preference ke mutabiq edit karta hai.</p>
+      </div>
+    </div>
+    <div class="step reveal" style="transition-delay:.2s">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <h3>Download & Share Karein</h3>
+        <p>Final video download karein ya seedha YouTube / Instagram par publish karein ek click mein.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REWARDS SECTION -->
+<section class="section" id="rewards" style="background: var(--deep);">
+  <div class="section-label">🎁 Rewards Program</div>
+  <h2 class="section-title reveal">Earn Karo, Enjoy Karo!</h2>
+  <p style="color:var(--muted);margin-top:.8rem;max-width:560px;">Har action par points milte hain — jitna use karo utna earn karo. Redeem karo premium features, extra exports, aur bahut kuch!</p>
+
+  <!-- OWNER CARD -->
+  <div class="owner-reward reveal" style="transition-delay:.1s">
+    <div class="owner-crown">👑</div>
+    <div class="owner-badge">OWNER ACCESS</div>
+    <h3>Aapke Liye — Unlimited FREE Rewards</h3>
+    <p>Aap is platform ke malik hain — isliye aapko koi limit nahi. Sab features, sab rewards, hamesha ke liye bilkul FREE!</p>
+    <div class="owner-perks">
+      <div class="perk-item"><span class="perk-icon">♾️</span><span>Unlimited Video Editing</span></div>
+      <div class="perk-item"><span class="perk-icon">🎨</span><span>Sab Premium Presets Unlocked</span></div>
+      <div class="perk-item"><span class="perk-icon">🔑</span><span>Full API Access</span></div>
+      <div class="perk-item"><span class="perk-icon">⚡</span><span>Priority Processing — Always First</span></div>
+      <div class="perk-item"><span class="perk-icon">🏆</span><span>Exclusive Owner Dashboard</span></div>
+      <div class="perk-item"><span class="perk-icon">💎</span><span>Lifetime Free Updates</span></div>
+      <div class="perk-item"><span class="perk-icon">🚀</span><span>Beta Features — Pehle Access</span></div>
+      <div class="perk-item"><span class="perk-icon">🎁</span><span>Monthly Bonus Credits: ∞</span></div>
+    </div>
+    <button class="btn-primary" style="margin-top:1.5rem;width:100%;font-size:1rem;">Owner Portal Mein Jao 👑</button>
+  </div>
+
+  <!-- PUBLIC REWARDS -->
+  <h3 class="reveal" style="margin-top:4rem;font-size:1.4rem;font-weight:600;transition-delay:.1s">Public Rewards — Points Earn Karo</h3>
+  <p style="color:var(--muted);font-size:.9rem;margin-top:.4rem;margin-bottom:2rem;">Har action par points milte hain. Enough points = free upgrade!</p>
+
+  <div class="rewards-grid reveal" style="transition-delay:.2s">
+    <div class="reward-card"><div class="reward-pts">+50 pts</div><div class="reward-icon">📤</div><h4>Video Upload</h4><p>Har video upload karne par 50 points milte hain</p></div>
+    <div class="reward-card"><div class="reward-pts">+100 pts</div><div class="reward-icon">🤝</div><h4>Friend Refer Karo</h4><p>Dost ko invite karo — dono ko 100-100 points</p></div>
+    <div class="reward-card"><div class="reward-pts">+200 pts</div><div class="reward-icon">⭐</div><h4>Review Likho</h4><p>Platform review dene par 200 bonus points</p></div>
+    <div class="reward-card"><div class="reward-pts">+30 pts</div><div class="reward-icon">📅</div><h4>Daily Login</h4><p>Roz login karo aur 30 points daily earn karo</p></div>
+    <div class="reward-card"><div class="reward-pts">+500 pts</div><div class="reward-icon">🏆</div><h4>Video Viral Ho</h4><p>Export video 10K views paye — 500 bonus points</p></div>
+    <div class="reward-card"><div class="reward-pts">+150 pts</div><div class="reward-icon">📱</div><h4>Social Share</h4><p>CineAI ko social media par share karo</p></div>
+  </div>
+
+  <div class="redeem-table reveal" style="transition-delay:.3s">
+    <h3 style="font-size:1.2rem;margin-bottom:1.5rem;">Points Kaise Redeem Karein?</h3>
+    <div class="redeem-row header-row"><span>Points</span><span>Reward</span><span>Value</span></div>
+    <div class="redeem-row"><span class="pts-badge">500 pts</span><span>5 Extra Video Exports</span><span class="val">$5 value</span></div>
+    <div class="redeem-row"><span class="pts-badge">1,000 pts</span><span>1 Month Pro — Free</span><span class="val">$19 value</span></div>
+    <div class="redeem-row"><span class="pts-badge">2,500 pts</span><span>3 Months Pro — Free</span><span class="val">$57 value</span></div>
+    <div class="redeem-row highlight-row"><span class="pts-badge gold">5,000 pts</span><span>1 Year Studio Plan</span><span class="val gold">$588 value!</span></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="section-label">Pricing</div>
+  <h2 class="section-title reveal">Apne Budget Ka Plan Chunein</h2>
+
+  <div class="pricing-grid reveal" style="transition-delay:.1s">
+    <div class="plan">
+      <div class="plan-label">Starter</div>
+      <div class="plan-price"><sup>$</sup>0 <small>/ month</small></div>
+      <ul>
+        <li>5 videos per month</li>
+        <li>720p export quality</li>
+        <li>Auto captions (English only)</li>
+        <li>Basic color presets</li>
+      </ul>
+      <button class="btn-ghost">Free Shuru Karein</button>
+    </div>
+
+    <div class="plan featured">
+      <div class="plan-label">⚡ Pro — Most Popular</div>
+      <div class="plan-price"><sup>$</sup>19 <small>/ month</small></div>
+      <ul>
+        <li>Unlimited videos</li>
+        <li>4K export quality</li>
+        <li>Multilingual captions</li>
+        <li>All AI features unlocked</li>
+        <li>Priority processing</li>
+      </ul>
+      <button class="btn-primary">Pro Start Karein</button>
+    </div>
+
+    <div class="plan">
+      <div class="plan-label">Studio</div>
+      <div class="plan-price"><sup>$</sup>49 <small>/ month</small></div>
+      <ul>
+        <li>Everything in Pro</li>
+        <li>Team collaboration (10 seats)</li>
+        <li>Custom brand presets</li>
+        <li>API access</li>
+        <li>Dedicated support</li>
+      </ul>
+      <button class="btn-ghost">Studio Try Karein</button>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section testimonials">
+  <div class="section-label">Reviews</div>
+  <h2 class="section-title reveal">Creators Ka Kehna Hai</h2>
+
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <p>"CineAI ne meri editing workflow completely change kar di. Jo kaam 3 ghante leta tha, ab 15 minutes mein ho jata hai."</p>
+      <div class="testi-author">
+        <div class="avatar">AR</div>
+        <div><strong>Ali Raza</strong><br><small>YouTube Creator — 500K subscribers</small></div>
+      </div>
+    </div>
+    <div class="testi-card reveal" style="transition-delay:.1s">
+      <p>"Auto captions Urdu mein bhi itne accurate hain — mujhe believe hi nahi hua pehle! Ab mera channel globally reach kar raha hai."</p>
+      <div class="testi-author">
+        <div class="avatar">SM</div>
+        <div><strong>Sara Malik</strong><br><small>Content Creator — Digital Marketing</small></div>
+      </div>
+    </div>
+    <div class="testi-card reveal" style="transition-delay:.2s">
+      <p>"Corporate videos ke liye best tool. AI color grading itni professional lagti hai k clients samajhte hain koi bada studio hai."</p>
+      <div class="testi-author">
+        <div class="avatar">BK</div>
+        <div><strong>Bilal Khan</strong><br><small>Video Production Agency</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div class="cta-banner reveal">
+  <h2>AGLE VIDEO KO<br><span style="color:var(--cyan)">CINEMATIC</span> BANAO</h2>
+  <p>Koi credit card nahi chahiye. Free plan se shuru karo aaj hi.</p>
+  <button class="btn-primary" style="font-size:1.1rem;padding:1rem 2.5rem">Abhi Sign Up Karein — Free</button>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo" style="font-size:1.3rem">Cine<span style="color:var(--plasma)">AI</span></div>
+  <p>© 2026 CineAI. Sab rights محفوظ ہیں۔</p>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Support</a>
+    <a href="#">Blog</a>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  // Service Worker
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+  }
+  // Install prompt
+  let deferredPrompt;
+  const banner = document.getElementById("install-banner");
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredPrompt = e; banner.style.display = "flex"; });
+  document.getElementById("install-btn") && document.getElementById("install-btn").addEventListener("click", async () => { banner.style.display="none"; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; });
+  document.getElementById("dismiss-btn") && document.getElementById("dismiss-btn").addEventListener("click", () => banner.style.display="none");
+  const els = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  els.forEach(el => obs.observe(el));
+</script>
+<!-- Install Banner -->
+<div id="install-banner" style="display:none;position:fixed;bottom:1.5rem;left:1rem;right:1rem;z-index:999;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #9b5de5;border-radius:14px;padding:1rem 1.2rem;align-items:center;gap:1rem;box-shadow:0 8px 32px rgba(155,93,229,.4);">
+  <div style="font-size:2rem">📲</div>
+  <div style="flex:1"><div style="font-weight:700;font-size:.95rem">CineAI Install Karein!</div><div style="color:#888;font-size:.8rem">Home screen par app ki tarah use karein</div></div>
+  <button id="install-btn" style="background:#9b5de5;color:#fff;border:none;border-radius:8px;padding:.5rem 1rem;font-weight:600;font-size:.85rem;cursor:pointer;">Install</button>
+  <button id="dismiss-btn" style="background:transparent;color:#888;border:none;font-size:1.2rem;cursor:pointer;padding:.2rem .4rem;">✕</button>
+</div>
+</body>
+</html>
